@@ -1,4 +1,4 @@
-name: CI
+name: test
 on:
   push:
     # path exclusions; read more: https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
@@ -27,4 +27,4 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Build and test with Maven
-        run: mvn -B clean validate compile test
+        run: mvn -B compile test
