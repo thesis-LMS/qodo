@@ -1,11 +1,13 @@
 package com.library.system.services
 
+import com.library.system.model.Book
+
 class BookService {
-    fun getAllBooks(): Any {
+    fun getAllBooks() {
 
     }
 
-    fun getBookById(i: Int): Any {
+    fun getBookById(i: Int) {
 
     }
 
@@ -21,7 +23,7 @@ class BookService {
 
     }
 
-    fun borrowBook(i: Int): Any {
+    fun borrowBook(i: Int) {
 
     }
 
