@@ -1,0 +1,30 @@
+name: compile
+on:
+  push:
+    # path exclusions; read more: https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
+    paths-ignore:
+      - '**/README.md'
+      - '**/.gitignore'
+      - 'model/**'
+
+    branches:
+      - 'main'
+
+    workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17 + cache
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build and test with Maven
+        run: mvn -B clean validate compile
