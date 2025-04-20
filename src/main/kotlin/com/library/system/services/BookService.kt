@@ -27,4 +27,8 @@ class BookService {
 
     }
 
+    fun returnBook(book: Book) {
+
+    }
+
 }
