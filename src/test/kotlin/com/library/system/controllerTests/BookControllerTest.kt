@@ -6,7 +6,7 @@ import com.library.system.services.BookService
 import com.library.system.web.BookController
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.Mockito.*
+import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -31,13 +31,12 @@ class BookControllerTest {
     @Autowired
     private lateinit var objectMapper: ObjectMapper
 
-
     @Test
     fun `POST addBook should return created book and status 201`() {
         val bookId = UUID.randomUUID()
         val newBookDto = Book(title = "New Book", author = "New Author")
         val savedBook = newBookDto.copy(id = bookId, available = true)
-        `when`(bookService.addBook(any(Book::class.java))).thenReturn(savedBook)
+        whenever(bookService.addBook(any<Book>())).thenReturn(savedBook)
 
         mockMvc.perform(post("/api/books")
             .contentType(MediaType.APPLICATION_JSON)
@@ -55,7 +54,7 @@ class BookControllerTest {
     fun `GET getBookById should return book and status 200 when found`() {
         val bookId = UUID.randomUUID()
         val existingBook = Book(id = bookId, title = "Found Book", author = "Author", available = true)
-        `when`(bookService.getBookById(bookId)).thenReturn(existingBook)
+        whenever(bookService.getBookById(bookId)).thenReturn(existingBook)
 
         mockMvc.perform(get("/api/books/{id}", bookId)
             .accept(MediaType.APPLICATION_JSON))
@@ -70,7 +69,7 @@ class BookControllerTest {
     @Test
     fun `GET getBookById should return status 404 when book not found`() {
         val bookId = UUID.randomUUID()
-        `when`(bookService.getBookById(bookId)).thenThrow(ResourceNotFoundException("Book not found"))
+        whenever(bookService.getBookById(bookId)).thenThrow(ResourceNotFoundException("Book not found"))
 
         mockMvc.perform(get("/api/books/{id}", bookId)
             .accept(MediaType.APPLICATION_JSON))
@@ -87,7 +86,7 @@ class BookControllerTest {
             Book(id = book1Id, title = "Book 1", author = "Author 1", available = true),
             Book(id = book2Id, title = "Book 2", author = "Author 2", available = false)
         )
-        `when`(bookService.getAllBooks()).thenReturn(books)
+        whenever(bookService.getAllBooks()).thenReturn(books)
 
         mockMvc.perform(get("/api/books")
             .accept(MediaType.APPLICATION_JSON))
@@ -105,7 +104,7 @@ class BookControllerTest {
         val bookId = UUID.randomUUID()
         val updateDto = Book(id = bookId, title = "Updated Title", author = "Updated Author", available = false)
         val updatedBook = updateDto.copy()
-        `when`(bookService.updateBook(eq(bookId), any(Book::class.java))).thenReturn(updatedBook)
+        whenever(bookService.updateBook(eq(bookId), any<Book>())).thenReturn(updatedBook)
 
         mockMvc.perform(put("/api/books/{id}", bookId)
             .contentType(MediaType.APPLICATION_JSON)
@@ -123,7 +122,7 @@ class BookControllerTest {
     fun `PUT updateBook should return status 404 when book not found`() {
         val bookId = UUID.randomUUID()
         val updateDto = Book(id = bookId, title = "Update Fail", author = "Fail Author")
-        `when`(bookService.updateBook(eq(bookId), any(Book::class.java)))
+        whenever(bookService.updateBook(eq(bookId), any<Book>()))
             .thenThrow(ResourceNotFoundException("Book not found"))
 
         mockMvc.perform(put("/api/books/{id}", bookId)
@@ -131,13 +130,13 @@ class BookControllerTest {
             .content(objectMapper.writeValueAsString(updateDto)))
             .andExpect(status().isNotFound)
 
-        verify(bookService).updateBook(eq(bookId), any(Book::class.java))
+        verify(bookService).updateBook(eq(bookId), any<Book>())
     }
 
     @Test
     fun `DELETE deleteBookById should return status 204 when book exists`() {
         val bookId = UUID.randomUUID()
-        doNothing().`when`(bookService).deleteBookById(bookId)
+        doNothing().whenever(bookService).deleteBookById(bookId)
 
         mockMvc.perform(delete("/api/books/{id}", bookId))
             .andExpect(status().isNoContent)
@@ -148,7 +147,7 @@ class BookControllerTest {
     @Test
     fun `DELETE deleteBookById should return status 404 when book does not exist`() {
         val bookId = UUID.randomUUID()
-        doThrow(ResourceNotFoundException("Book not found")).`when`(bookService).deleteBookById(bookId)
+        doThrow(ResourceNotFoundException("Book not found")).whenever(bookService).deleteBookById(bookId)
 
         mockMvc.perform(delete("/api/books/{id}", bookId))
             .andExpect(status().isNotFound)
@@ -161,7 +160,7 @@ class BookControllerTest {
         val titleQuery = "Search"
         val bookId = UUID.randomUUID()
         val matchingBooks = listOf(Book(id = bookId, title = "Searchable Book", author = "Author", available = true))
-        `when`(bookService.searchBooks(eq(titleQuery), isNull(), isNull())).thenReturn(matchingBooks)
+        whenever(bookService.searchBooks(eq(titleQuery), isNull(), isNull())).thenReturn(matchingBooks)
 
         mockMvc.perform(get("/api/books/search")
             .param("title", titleQuery)
@@ -179,7 +178,7 @@ class BookControllerTest {
         val authorQuery = "Finder"
         val bookId = UUID.randomUUID()
         val matchingBooks = listOf(Book(id = bookId, title = "Book", author = "Finder Author", available = true))
-        `when`(bookService.searchBooks(isNull(), eq(authorQuery), isNull())).thenReturn(matchingBooks)
+        whenever(bookService.searchBooks(isNull(), eq(authorQuery), isNull())).thenReturn(matchingBooks)
 
         mockMvc.perform(get("/api/books/search")
             .param("author", authorQuery)
@@ -196,7 +195,7 @@ class BookControllerTest {
         val availabilityQuery = "true"
         val bookId = UUID.randomUUID()
         val matchingBooks = listOf(Book(id = bookId, title = "Book", author = "Author", available = true))
-        `when`(bookService.searchBooks(isNull(), isNull(), eq(true))).thenReturn(matchingBooks)
+        whenever(bookService.searchBooks(isNull(), isNull(), eq(true))).thenReturn(matchingBooks)
 
         mockMvc.perform(get("/api/books/search")
             .param("available", availabilityQuery)
@@ -214,7 +213,7 @@ class BookControllerTest {
         val availabilityQuery = "false"
         val bookId = UUID.randomUUID()
         val matchingBooks = listOf(Book(id = bookId, title = "Combo Book", author = "Author", available = false))
-        `when`(bookService.searchBooks(eq(titleQuery), isNull(), eq(false))).thenReturn(matchingBooks)
+        whenever(bookService.searchBooks(eq(titleQuery), isNull(), eq(false))).thenReturn(matchingBooks)
 
         mockMvc.perform(get("/api/books/search")
             .param("title", titleQuery)
@@ -233,7 +232,7 @@ class BookControllerTest {
         val userId = UUID.randomUUID()
         val borrowedBook = Book(id = bookId, title = "Borrowed", author = "Author", available = false, borrowedByUserId = userId, dueDate = LocalDate.now().plusWeeks(2))
         // assuming service returns the updated Book for simplicity here
-        `when`(bookService.borrowBook(bookId, userId)).thenReturn(borrowedBook)
+        whenever(bookService.borrowBook(bookId, userId)).thenReturn(borrowedBook)
 
         mockMvc.perform(post("/api/books/{bookId}/borrow", bookId)
             .param("userId", userId.toString()))
@@ -249,7 +248,7 @@ class BookControllerTest {
     fun `POST borrowBook should return status 404 when book not found`() {
         val bookId = UUID.randomUUID()
         val userId = UUID.randomUUID()
-        `when`(bookService.borrowBook(bookId, userId)).thenThrow(ResourceNotFoundException("Book not found"))
+        whenever(bookService.borrowBook(bookId, userId)).thenThrow(ResourceNotFoundException("Book not found"))
 
         mockMvc.perform(post("/api/books/{bookId}/borrow", bookId)
             .param("userId", userId.toString()))
@@ -262,7 +261,7 @@ class BookControllerTest {
     fun `POST borrowBook should return status 404 when user not found`() {
         val bookId = UUID.randomUUID()
         val userId = UUID.randomUUID()
-        `when`(bookService.borrowBook(bookId, userId)).thenThrow(ResourceNotFoundException("User not found"))
+        whenever(bookService.borrowBook(bookId, userId)).thenThrow(ResourceNotFoundException("User not found"))
 
         mockMvc.perform(post("/api/books/{bookId}/borrow", bookId)
             .param("userId", userId.toString()))
@@ -275,7 +274,7 @@ class BookControllerTest {
     fun `POST borrowBook should return status 409 when book not available`() {
         val bookId = UUID.randomUUID()
         val userId = UUID.randomUUID()
-        `when`(bookService.borrowBook(bookId, userId)).thenThrow(BookNotAvailableException("Book not available"))
+        whenever(bookService.borrowBook(bookId, userId)).thenThrow(BookNotAvailableException("Book not available"))
 
         mockMvc.perform(post("/api/books/{bookId}/borrow", bookId)
             .param("userId", userId.toString()))
@@ -288,8 +287,8 @@ class BookControllerTest {
     fun `POST returnBook should call service and return status 200 on success`() {
         val bookId = UUID.randomUUID()
         val returnedBook = Book(id = bookId, title = "Returned", author = "Author", available = true, borrowedByUserId = null, dueDate = null)
-        // Assuming service returns the updated Book for simplicity here
-        `when`(bookService.returnBook(bookId)).thenReturn(returnedBook)
+        // assuming service returns the updated Book for simplicity here
+        whenever(bookService.returnBook(bookId)).thenReturn(returnedBook)
 
         mockMvc.perform(post("/api/books/{bookId}/return", bookId))
             .andExpect(status().isOk)
@@ -303,7 +302,7 @@ class BookControllerTest {
     @Test
     fun `POST returnBook should return status 404 when book not found`() {
         val bookId = UUID.randomUUID()
-        `when`(bookService.returnBook(bookId)).thenThrow(ResourceNotFoundException("Book not found"))
+        whenever(bookService.returnBook(bookId)).thenThrow(ResourceNotFoundException("Book not found"))
 
         mockMvc.perform(post("/api/books/{bookId}/return", bookId))
             .andExpect(status().isNotFound)
@@ -314,7 +313,7 @@ class BookControllerTest {
     @Test
     fun `POST returnBook should return status 409 when book already available`() {
         val bookId = UUID.randomUUID()
-        `when`(bookService.returnBook(bookId)).thenThrow(BookAlreadyReturnedException("Book already available"))
+        whenever(bookService.returnBook(bookId)).thenThrow(BookAlreadyReturnedException("Book already available"))
 
         mockMvc.perform(post("/api/books/{bookId}/return", bookId))
             .andExpect(status().isConflict)

@@ -13,7 +13,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.kotlin.*
 import org.mockito.junit.jupiter.MockitoExtension
 import java.time.LocalDate
 import java.util.*
@@ -22,7 +22,7 @@ import java.util.*
 class BookServiceTest {
 
     @Mock
-    lateinit var bookRepository: BookRepository<Any?>
+    lateinit var bookRepository: BookRepository
 
     @Mock
     lateinit var userRepository: UserRepository
@@ -41,7 +41,7 @@ class BookServiceTest {
         val bookId = UUID.randomUUID()
         val newBook = Book(title = "The Great Novel", author = "Jane Author", available = true)
         val savedBook = newBook.copy(id = bookId)
-        `when`(bookRepository.save(any(Book::class.java))).thenReturn(savedBook)
+        whenever(bookRepository.save(any<Book>())).thenReturn(savedBook)
 
         val result = bookService.addBook(newBook)
 
@@ -56,7 +56,7 @@ class BookServiceTest {
     fun `getBookById should return book when found`() {
         val bookId = UUID.randomUUID()
         val existingBook = Book(id = bookId, title = "Existing Book", author = "Author", available = true)
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook))
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook))
 
         val result = bookService.getBookById(bookId)
 
@@ -67,7 +67,7 @@ class BookServiceTest {
     @Test
     fun `getBookById should throw ResourceNotFoundException when book not found`() {
         val bookId = UUID.randomUUID()
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.empty())
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.empty())
 
         val exception = assertThrows<ResourceNotFoundException> {
             bookService.getBookById(bookId)
@@ -82,7 +82,7 @@ class BookServiceTest {
             Book(id = UUID.randomUUID(), title = "Book 1", author = "Author 1", available = true),
             Book(id = UUID.randomUUID(), title = "Book 2", author = "Author 2", available = false)
         )
-        `when`(bookRepository.findAll()).thenReturn(books)
+        whenever(bookRepository.findAll()).thenReturn(books)
 
         val result = bookService.getAllBooks()
 
@@ -97,8 +97,8 @@ class BookServiceTest {
         val updatedDetails = Book(id = bookId, title = "New Title", author = "New Author", available = false)
         val savedBook = updatedDetails.copy()
 
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook))
-        `when`(bookRepository.save(any(Book::class.java))).thenReturn(savedBook)
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook))
+        whenever(bookRepository.save(any<Book>())).thenReturn(savedBook)
 
         val result = bookService.updateBook(bookId, updatedDetails)
 
@@ -115,21 +115,21 @@ class BookServiceTest {
     fun `updateBook should throw ResourceNotFoundException when book not found`() {
         val bookId = UUID.randomUUID()
         val bookDetailsToUpdate = Book(id = bookId, title = "Doesn't Matter", author = "Test")
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.empty())
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.empty())
 
         val exception = assertThrows<ResourceNotFoundException> {
             bookService.updateBook(bookId, bookDetailsToUpdate)
         }
-        assertEquals("Book with ID $bookId not found for update", exception.message)
+        assertEquals("Book with ID $bookId not found", exception.message)
         verify(bookRepository).findById(bookId)
-        verify(bookRepository, never()).save(any(Book::class.java))
+        verify(bookRepository, never()).save(any<Book>())
     }
 
     @Test
     fun `deleteBookById should call repository delete when book exists`() {
         val bookId = UUID.randomUUID()
-        `when`(bookRepository.existsById(bookId)).thenReturn(true)
-        doNothing().`when`(bookRepository).deleteById(bookId)
+        whenever(bookRepository.existsById(bookId)).thenReturn(true)
+        doNothing().whenever(bookRepository).deleteById(bookId)
 
         bookService.deleteBookById(bookId)
 
@@ -140,7 +140,7 @@ class BookServiceTest {
     @Test
     fun `deleteBookById should throw ResourceNotFoundException when book does not exist`() {
         val bookId = UUID.randomUUID()
-        `when`(bookRepository.existsById(bookId)).thenReturn(false)
+        whenever(bookRepository.existsById(bookId)).thenReturn(false)
 
         val exception = assertThrows<ResourceNotFoundException> {
             bookService.deleteBookById(bookId)
@@ -154,7 +154,7 @@ class BookServiceTest {
     fun `searchBooksByTitle should return matching books`() {
         val titleQuery = "Novel"
         val matchingBooks = listOf(Book(id = UUID.randomUUID(), title = "The Great Novel", author = "Author", available = true))
-        `when`(bookRepository.findByTitleContainingIgnoreCase(titleQuery)).thenReturn(matchingBooks)
+        whenever(bookRepository.findByTitleContainingIgnoreCase(titleQuery)).thenReturn(matchingBooks)
 
         val result = bookService.searchBooks(title = titleQuery, author = null, available = null)
 
@@ -166,7 +166,7 @@ class BookServiceTest {
     fun `searchBooksByAuthor should return matching books`() {
         val authorQuery = "Jane"
         val matchingBooks = listOf(Book(id = UUID.randomUUID(), title = "Some Book", author = "Jane Author", available = true))
-        `when`(bookRepository.findByAuthorContainingIgnoreCase(authorQuery)).thenReturn(matchingBooks)
+        whenever(bookRepository.findByAuthorContainingIgnoreCase(authorQuery)).thenReturn(matchingBooks)
 
         val result = bookService.searchBooks(title = null, author = authorQuery, available = null)
 
@@ -178,7 +178,7 @@ class BookServiceTest {
     fun `searchBooksByAvailability should return matching books`() {
         val availabilityQuery = true
         val matchingBooks = listOf(Book(id = UUID.randomUUID(), title = "Available Book", author = "Author", available = true))
-        `when`(bookRepository.findByAvailable(availabilityQuery)).thenReturn(matchingBooks)
+        whenever(bookRepository.findByAvailable(availabilityQuery)).thenReturn(matchingBooks)
 
         val result = bookService.searchBooks(title = null, author = null, available = availabilityQuery)
 
@@ -192,7 +192,7 @@ class BookServiceTest {
         val authorQuery = "Jane"
         val availabilityQuery = true
         val matchingBooks = listOf(Book(id = UUID.randomUUID(), title = "Great Book", author = "Jane Doe", available = true))
-        `when`(bookRepository.findByTitleContainingIgnoreCaseAndAuthorContainingIgnoreCaseAndAvailable(titleQuery, authorQuery, availabilityQuery))
+        whenever(bookRepository.findByTitleContainingIgnoreCaseAndAuthorContainingIgnoreCaseAndAvailable(titleQuery, authorQuery, availabilityQuery))
             .thenReturn(matchingBooks)
 
         val result = bookService.searchBooks(title = titleQuery, author = authorQuery, available = availabilityQuery)
@@ -210,15 +210,15 @@ class BookServiceTest {
         val expectedDueDate = LocalDate.now().plusWeeks(2)
         val borrowDate = LocalDate.now()
 
-        `when`(borrowingRecordRepository.countByUserIdAndReturnDateIsNull(userId)).thenReturn(0L)
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.of(bookToBorrow))
-        `when`(userRepository.findById(userId)).thenReturn(Optional.of(userBorrowing))
-        `when`(bookRepository.save(any(Book::class.java))).thenAnswer { invocation ->
+        whenever(borrowingRecordRepository.countByUserIdAndReturnDateIsNull(userId)).thenReturn(0L)
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.of(bookToBorrow))
+        whenever(userRepository.findById(userId)).thenReturn(Optional.of(userBorrowing))
+        whenever(bookRepository.save(any<Book>())).thenAnswer { invocation ->
             val savedBook = invocation.getArgument<Book>(0)
             assertFalse(savedBook.available)
             savedBook.copy()
         }
-        `when`(borrowingRecordRepository.save(any(BorrowingRecord::class.java))).thenAnswer { invocation ->
+        whenever(borrowingRecordRepository.save(any<BorrowingRecord>())).thenAnswer { invocation ->
             val savedRecord = invocation.getArgument<BorrowingRecord>(0)
             savedRecord.copy(id = UUID.randomUUID())
         }
@@ -246,34 +246,34 @@ class BookServiceTest {
         val bookId = UUID.randomUUID()
         val userId = UUID.randomUUID()
         val unavailableBook = Book(id = bookId, title = "Borrowed", author = "Author", available = false, borrowedByUserId = UUID.randomUUID())
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.of(unavailableBook))
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.of(unavailableBook))
 
         val exception = assertThrows<BookNotAvailableException> {
             bookService.borrowBook(bookId, userId)
         }
         assertEquals("Book with ID $bookId is not available for borrowing.", exception.message)
         verify(bookRepository).findById(bookId)
-        verify(userRepository, never()).findById(any(UUID::class.java))
-        verify(bookRepository, never()).save(any(Book::class.java))
-        verify(borrowingRecordRepository, never()).save(any(BorrowingRecord::class.java))
-        verify(borrowingRecordRepository, never()).countByUserIdAndReturnDateIsNull(any(UUID::class.java))
+        verify(userRepository, never()).findById(any<UUID>())
+        verify(bookRepository, never()).save(any<Book>())
+        verify(borrowingRecordRepository, never()).save(any<BorrowingRecord>())
+        verify(borrowingRecordRepository, never()).countByUserIdAndReturnDateIsNull(any<UUID>())
     }
 
     @Test
     fun `borrowBook should throw ResourceNotFoundException when book not found`() {
         val bookId = UUID.randomUUID()
         val userId = UUID.randomUUID()
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.empty())
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.empty())
 
         val exception = assertThrows<ResourceNotFoundException> {
             bookService.borrowBook(bookId, userId)
         }
-        assertEquals("Book with ID $bookId not found for borrowing.", exception.message)
+        assertEquals("Book with ID $bookId not found", exception.message)
         verify(bookRepository).findById(bookId)
-        verify(userRepository, never()).findById(any(UUID::class.java))
-        verify(bookRepository, never()).save(any(Book::class.java))
-        verify(borrowingRecordRepository, never()).save(any(BorrowingRecord::class.java))
-        verify(borrowingRecordRepository, never()).countByUserIdAndReturnDateIsNull(any(UUID::class.java))
+        verify(userRepository, never()).findById(any<UUID>())
+        verify(bookRepository, never()).save(any<Book>())
+        verify(borrowingRecordRepository, never()).save(any<BorrowingRecord>())
+        verify(borrowingRecordRepository, never()).countByUserIdAndReturnDateIsNull(any<UUID>())
     }
 
     @Test
@@ -281,9 +281,8 @@ class BookServiceTest {
         val bookId = UUID.randomUUID()
         val userId = UUID.randomUUID()
         val availableBook = Book(id = bookId, title = "Available", author = "Author", available = true)
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.of(availableBook))
-        `when`(userRepository.findById(userId)).thenReturn(Optional.empty())
-        `when`(borrowingRecordRepository.countByUserIdAndReturnDateIsNull(userId)).thenReturn(0L)
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.of(availableBook))
+        whenever(userRepository.findById(userId)).thenReturn(Optional.empty())
 
         val exception = assertThrows<ResourceNotFoundException> {
             bookService.borrowBook(bookId, userId)
@@ -291,8 +290,8 @@ class BookServiceTest {
         assertEquals("User with ID $userId not found for borrowing.", exception.message)
         verify(bookRepository).findById(bookId)
         verify(userRepository).findById(userId)
-        verify(bookRepository, never()).save(any(Book::class.java))
-        verify(borrowingRecordRepository, never()).save(any(BorrowingRecord::class.java))
+        verify(bookRepository, never()).save(any<Book>())
+        verify(borrowingRecordRepository, never()).save(any<BorrowingRecord>())
     }
 
     @Test
@@ -312,16 +311,16 @@ class BookServiceTest {
         val returnDate = LocalDate.now()
         val expectedLateFee = 5 * 0.5
 
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.of(borrowedBook))
-        `when`(borrowingRecordRepository.findByBookIdAndReturnDateIsNull(bookId)).thenReturn(Optional.of(borrowingRecord))
-        `when`(bookRepository.save(any(Book::class.java))).thenAnswer { invocation ->
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.of(borrowedBook))
+        whenever(borrowingRecordRepository.findByBookIdAndReturnDateIsNull(bookId)).thenReturn(Optional.of(borrowingRecord))
+        whenever(bookRepository.save(any<Book>())).thenAnswer { invocation ->
             val savedBook = invocation.getArgument<Book>(0)
             assertTrue(savedBook.available)
             assertNull(savedBook.borrowedByUserId)
             assertNull(savedBook.dueDate)
             savedBook.copy()
         }
-        `when`(borrowingRecordRepository.save(any(BorrowingRecord::class.java))).thenAnswer { invocation ->
+        whenever(borrowingRecordRepository.save(any<BorrowingRecord>())).thenAnswer { invocation ->
             val savedRecord = invocation.getArgument<BorrowingRecord>(0)
             assertEquals(returnDate, savedRecord.returnDate)
             assertEquals(expectedLateFee, savedRecord.lateFee)
@@ -347,8 +346,8 @@ class BookServiceTest {
     fun `returnBook should throw BookAlreadyReturnedException when no active borrowing record found`() {
         val bookId = UUID.randomUUID()
         val availableBook = Book(id = bookId, title = "Available Book", author = "Author", available = true)
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.of(availableBook))
-        `when`(borrowingRecordRepository.findByBookIdAndReturnDateIsNull(bookId)).thenReturn(Optional.empty())
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.of(availableBook))
+        whenever(borrowingRecordRepository.findByBookIdAndReturnDateIsNull(bookId)).thenReturn(Optional.empty())
 
         val exception = assertThrows<BookAlreadyReturnedException> {
             bookService.returnBook(bookId)
@@ -356,23 +355,23 @@ class BookServiceTest {
         assertEquals("Book with ID $bookId is already available or no active borrowing record found.", exception.message)
         verify(bookRepository).findById(bookId)
         verify(borrowingRecordRepository).findByBookIdAndReturnDateIsNull(bookId)
-        verify(bookRepository, never()).save(any(Book::class.java))
-        verify(borrowingRecordRepository, never()).save(any(BorrowingRecord::class.java))
+        verify(bookRepository, never()).save(any<Book>())
+        verify(borrowingRecordRepository, never()).save(any<BorrowingRecord>())
     }
 
     @Test
     fun `returnBook should throw ResourceNotFoundException when book not found`() {
         val bookId = UUID.randomUUID()
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.empty())
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.empty())
 
         val exception = assertThrows<ResourceNotFoundException> {
             bookService.returnBook(bookId)
         }
-        assertEquals("Book with ID $bookId not found for return.", exception.message)
+        assertEquals("Book with ID $bookId not found", exception.message)
         verify(bookRepository).findById(bookId)
-        verify(borrowingRecordRepository, never()).findByBookIdAndReturnDateIsNull(any(UUID::class.java))
-        verify(bookRepository, never()).save(any(Book::class.java))
-        verify(borrowingRecordRepository, never()).save(any(BorrowingRecord::class.java))
+        verify(borrowingRecordRepository, never()).findByBookIdAndReturnDateIsNull(any<UUID>())
+        verify(bookRepository, never()).save(any<Book>())
+        verify(borrowingRecordRepository, never()).save(any<BorrowingRecord>())
     }
 
     @Test
@@ -388,10 +387,10 @@ class BookServiceTest {
         val borrowedBook = Book(id = bookId, title="Overdue", author="Author", available=false, borrowedByUserId=userId, dueDate=dueDate)
         val borrowingRecord = BorrowingRecord(id=UUID.randomUUID(), bookId=bookId, userId=userId, borrowDate=dueDate.minusWeeks(2), dueDate=dueDate, returnDate=null, lateFee=0.0)
 
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.of(borrowedBook))
-        `when`(borrowingRecordRepository.findByBookIdAndReturnDateIsNull(bookId)).thenReturn(Optional.of(borrowingRecord))
-        `when`(bookRepository.save(any(Book::class.java))).thenReturn(borrowedBook)
-        `when`(borrowingRecordRepository.save(any(BorrowingRecord::class.java))).thenAnswer { it.getArgument(0) }
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.of(borrowedBook))
+        whenever(borrowingRecordRepository.findByBookIdAndReturnDateIsNull(bookId)).thenReturn(Optional.of(borrowingRecord))
+        whenever(bookRepository.save(any<Book>())).thenReturn(borrowedBook)
+        whenever(borrowingRecordRepository.save(any<BorrowingRecord>())).thenAnswer { it.getArgument(0) }
 
         bookService.returnBook(bookId)
 
@@ -411,10 +410,10 @@ class BookServiceTest {
         val borrowedBook = Book(id = bookId, title="OnTime", author="Author", available=false, borrowedByUserId=userId, dueDate=dueDate)
         val borrowingRecord = BorrowingRecord(id=UUID.randomUUID(), bookId=bookId, userId=userId, borrowDate=dueDate.minusWeeks(1), dueDate=dueDate, returnDate=null, lateFee=0.0)
 
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.of(borrowedBook))
-        `when`(borrowingRecordRepository.findByBookIdAndReturnDateIsNull(bookId)).thenReturn(Optional.of(borrowingRecord))
-        `when`(bookRepository.save(any(Book::class.java))).thenReturn(borrowedBook)
-        `when`(borrowingRecordRepository.save(any(BorrowingRecord::class.java))).thenAnswer { it.getArgument(0) }
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.of(borrowedBook))
+        whenever(borrowingRecordRepository.findByBookIdAndReturnDateIsNull(bookId)).thenReturn(Optional.of(borrowingRecord))
+        whenever(bookRepository.save(any<Book>())).thenReturn(borrowedBook)
+        whenever(borrowingRecordRepository.save(any<BorrowingRecord>())).thenAnswer { it.getArgument(0) }
 
         bookService.returnBook(bookId)
 
@@ -432,9 +431,9 @@ class BookServiceTest {
         val bookToBorrow = Book(id = bookId, title = "Borrow Me", author = "Author", available = true)
         val userBorrowing = User(id = userId, name = "Borrower", email = "borrow@test.com")
 
-        `when`(bookRepository.findById(bookId)).thenReturn(Optional.of(bookToBorrow))
-        `when`(userRepository.findById(userId)).thenReturn(Optional.of(userBorrowing))
-        `when`(borrowingRecordRepository.countByUserIdAndReturnDateIsNull(userId)).thenReturn(borrowingLimit)
+        whenever(bookRepository.findById(bookId)).thenReturn(Optional.of(bookToBorrow))
+        whenever(userRepository.findById(userId)).thenReturn(Optional.of(userBorrowing))
+        whenever(borrowingRecordRepository.countByUserIdAndReturnDateIsNull(userId)).thenReturn(borrowingLimit)
 
         val exception = assertThrows<BorrowingLimitExceededException> {
             bookService.borrowBook(bookId, userId)
@@ -444,8 +443,8 @@ class BookServiceTest {
         verify(bookRepository).findById(bookId)
         verify(userRepository).findById(userId)
         verify(borrowingRecordRepository).countByUserIdAndReturnDateIsNull(userId)
-        verify(bookRepository, never()).save(any(Book::class.java))
-        verify(borrowingRecordRepository, never()).save(any(BorrowingRecord::class.java))
+        verify(bookRepository, never()).save(any<Book>())
+        verify(borrowingRecordRepository, never()).save(any<BorrowingRecord>())
     }
 
 

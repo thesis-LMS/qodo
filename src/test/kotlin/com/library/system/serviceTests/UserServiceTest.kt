@@ -9,7 +9,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.kotlin.*
 import org.mockito.junit.jupiter.MockitoExtension
 import java.util.*
 
@@ -22,14 +22,13 @@ class UserServiceTest {
     @InjectMocks
     lateinit var userService: UserService
 
-
     @Test
     fun `registerUser should save and return the new user`() {
         val userId = UUID.randomUUID()
         val newUser = User(name = "John Doe", email = "john.doe@example.com", role = UserRole.MEMBER)
         val savedUser = newUser.copy(id = userId)
 
-        `when`(userRepository.save(any(User::class.java))).thenReturn(savedUser)
+        whenever(userRepository.save(any<User>())).thenReturn(savedUser)
 
         val result = userService.registerUser(newUser)
 
@@ -44,7 +43,7 @@ class UserServiceTest {
     fun `getUserById should return user when found`() {
         val userId = UUID.randomUUID()
         val existingUser = User(id = userId, name = "Jane Doe", email = "jane.doe@example.com")
-        `when`(userRepository.findById(userId)).thenReturn(Optional.of(existingUser))
+        whenever(userRepository.findById(userId)).thenReturn(Optional.of(existingUser))
 
         val result = userService.getUserById(userId)
 
@@ -56,7 +55,7 @@ class UserServiceTest {
     @Test
     fun `getUserById should throw ResourceNotFoundException when user not found`() {
         val userId = UUID.randomUUID()
-        `when`(userRepository.findById(userId)).thenReturn(Optional.empty())
+        whenever(userRepository.findById(userId)).thenReturn(Optional.empty())
 
         val exception = assertThrows<ResourceNotFoundException> {
             userService.getUserById(userId)
@@ -70,10 +69,10 @@ class UserServiceTest {
         val userId = UUID.randomUUID()
         val existingUser = User(id = userId, name = "Old Name", email = "old@example.com")
         val updatedDetails = User(id = userId, name = "New Name", email = "new@example.com")
-        val savedUser = updatedDetails.copy() // Simulate the saved state
+        val savedUser = updatedDetails.copy()
 
-        `when`(userRepository.findById(userId)).thenReturn(Optional.of(existingUser))
-        `when`(userRepository.save(any(User::class.java))).thenReturn(savedUser)
+        whenever(userRepository.findById(userId)).thenReturn(Optional.of(existingUser))
+        whenever(userRepository.save(any<User>())).thenReturn(savedUser)
 
         val result = userService.updateUser(userId, updatedDetails)
 
@@ -89,13 +88,13 @@ class UserServiceTest {
     fun `updateUser should throw ResourceNotFoundException when user not found`() {
         val userId = UUID.randomUUID()
         val userDetailsToUpdate = User(id = userId, name = "Doesn't Matter", email = "test@test.com")
-        `when`(userRepository.findById(userId)).thenReturn(Optional.empty())
+        whenever(userRepository.findById(userId)).thenReturn(Optional.empty())
 
         val exception = assertThrows<ResourceNotFoundException> {
             userService.updateUser(userId, userDetailsToUpdate)
         }
-        assertEquals("User with ID $userId not found for update", exception.message)
+        assertEquals("User with ID $userId not found", exception.message)
         verify(userRepository).findById(userId)
-        verify(userRepository, never()).save(any(User::class.java))
+        verify(userRepository, never()).save(any<User>())
     }
 }

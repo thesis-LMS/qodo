@@ -6,7 +6,7 @@ import com.library.system.services.UserService
 import com.library.system.web.UserController
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.Mockito.*
+import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -35,7 +35,7 @@ class UserControllerTest {
         val userId = UUID.randomUUID()
         val newUserDto = User(name = "New User", email = "new@example.com", role = UserRole.MEMBER)
         val savedUser = newUserDto.copy(id = userId)
-        `when`(userService.registerUser(any(User::class.java))).thenReturn(savedUser)
+        whenever(userService.registerUser(any<User>())).thenReturn(savedUser)
 
         mockMvc.perform(post("/api/users")
             .contentType(MediaType.APPLICATION_JSON)
@@ -53,7 +53,7 @@ class UserControllerTest {
     fun `GET getUserById should return user and status 200 when found`() {
         val userId = UUID.randomUUID()
         val existingUser = User(id = userId, name = "Found User", email = "found@example.com")
-        `when`(userService.getUserById(userId)).thenReturn(existingUser)
+        whenever(userService.getUserById(userId)).thenReturn(existingUser)
 
         mockMvc.perform(get("/api/users/{id}", userId)
             .accept(MediaType.APPLICATION_JSON))
@@ -68,7 +68,7 @@ class UserControllerTest {
     @Test
     fun `GET getUserById should return status 404 when user not found`() {
         val userId = UUID.randomUUID()
-        `when`(userService.getUserById(userId)).thenThrow(ResourceNotFoundException("User with ID $userId not found"))
+        whenever(userService.getUserById(userId)).thenThrow(ResourceNotFoundException("User with ID $userId not found"))
 
         mockMvc.perform(get("/api/users/{id}", userId)
             .accept(MediaType.APPLICATION_JSON))
@@ -82,7 +82,7 @@ class UserControllerTest {
         val userId = UUID.randomUUID()
         val updateDto = User(id = userId, name = "Updated Name", email = "updated@example.com")
         val updatedUser = updateDto.copy()
-        `when`(userService.updateUser(eq(userId), any(User::class.java))).thenReturn(updatedUser)
+        whenever(userService.updateUser(eq(userId), any<User>())).thenReturn(updatedUser)
 
         mockMvc.perform(put("/api/users/{id}", userId)
             .contentType(MediaType.APPLICATION_JSON)
@@ -99,7 +99,7 @@ class UserControllerTest {
     fun `PUT updateUser should return status 404 when user not found`() {
         val userId = UUID.randomUUID()
         val updateDto = User(id = userId, name = "Update Attempt", email = "update@fail.com")
-        `when`(userService.updateUser(eq(userId), any(User::class.java)))
+        whenever(userService.updateUser(eq(userId), any<User>()))
             .thenThrow(ResourceNotFoundException("User with ID $userId not found for update"))
 
         mockMvc.perform(put("/api/users/{id}", userId)
@@ -107,6 +107,6 @@ class UserControllerTest {
             .content(objectMapper.writeValueAsString(updateDto)))
             .andExpect(status().isNotFound)
 
-        verify(userService).updateUser(eq(userId), any(User::class.java))
+        verify(userService).updateUser(eq(userId), any<User>())
     }
 }
