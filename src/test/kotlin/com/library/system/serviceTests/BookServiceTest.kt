@@ -120,7 +120,7 @@ class BookServiceTest {
         val exception = assertThrows<ResourceNotFoundException> {
             bookService.updateBook(bookId, bookDetailsToUpdate)
         }
-        assertEquals("Book with ID $bookId not found for update", exception.message)
+        assertEquals("Book with ID $bookId not found", exception.message)
         verify(bookRepository).findById(bookId)
         verify(bookRepository, never()).save(any<Book>())
     }
@@ -268,7 +268,7 @@ class BookServiceTest {
         val exception = assertThrows<ResourceNotFoundException> {
             bookService.borrowBook(bookId, userId)
         }
-        assertEquals("Book with ID $bookId not found for borrowing.", exception.message)
+        assertEquals("Book with ID $bookId not found", exception.message)
         verify(bookRepository).findById(bookId)
         verify(userRepository, never()).findById(any<UUID>())
         verify(bookRepository, never()).save(any<Book>())
@@ -367,7 +367,7 @@ class BookServiceTest {
         val exception = assertThrows<ResourceNotFoundException> {
             bookService.returnBook(bookId)
         }
-        assertEquals("Book with ID $bookId not found for return.", exception.message)
+        assertEquals("Book with ID $bookId not found", exception.message)
         verify(bookRepository).findById(bookId)
         verify(borrowingRecordRepository, never()).findByBookIdAndReturnDateIsNull(any<UUID>())
         verify(bookRepository, never()).save(any<Book>())

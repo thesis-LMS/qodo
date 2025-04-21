@@ -93,7 +93,7 @@ class UserServiceTest {
         val exception = assertThrows<ResourceNotFoundException> {
             userService.updateUser(userId, userDetailsToUpdate)
         }
-        assertEquals("User with ID $userId not found for update", exception.message)
+        assertEquals("User with ID $userId not found", exception.message)
         verify(userRepository).findById(userId)
         verify(userRepository, never()).save(any<User>())
     }
