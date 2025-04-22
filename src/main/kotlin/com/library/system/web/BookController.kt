@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*
 import java.util.UUID
 
 @RestController
-@RequestMapping("/books")
+@RequestMapping("/api/books")
 class BookController(private val bookService: BookService) {
 
     @PostMapping
@@ -51,5 +51,30 @@ class BookController(private val bookService: BookService) {
         } catch (e: Exception) {
             ResponseEntity.notFound().build()
         }
+    }
+
+    @GetMapping("/search")
+    fun searchBooks(
+        @RequestParam(required = false) title: String?,
+        @RequestParam(required = false) author: String?,
+        @RequestParam(required = false) available: Boolean?
+    ): ResponseEntity<List<Book>> {
+        val books = bookService.searchBooks(title, author, available)
+        return ResponseEntity.ok(books)
+    }
+
+    @PostMapping("/{bookId}/borrow")
+    fun borrowBook(
+        @PathVariable bookId: UUID,
+        @RequestParam userId: UUID
+    ): ResponseEntity<Book> {
+        val book = bookService.borrowBook(bookId, userId)
+        return ResponseEntity.ok(book)
+    }
+
+    @PostMapping("/{bookId}/return")
+    fun returnBook(@PathVariable bookId: UUID): ResponseEntity<Book> {
+        val book = bookService.returnBook(bookId)
+        return ResponseEntity.ok(book)
     }
 }
