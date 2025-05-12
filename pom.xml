@@ -11,8 +11,8 @@
 	<groupId>com.lms</groupId>
 	<artifactId>service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>libraryTests</name>
-	<description>library management system</description>
+	<name>qodo</name>
+	<description>library management system implementation using qodo</description>
 	<url/>
 	<licenses>
 		<license/>

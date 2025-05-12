@@ -15,7 +15,7 @@ jobs:
         image: mysql:latest
         env:
           MYSQL_ROOT_PASSWORD: verysecret
-          MYSQL_DATABASE: mydatabase
+          MYSQL_DATABASE: qodo_database
           MYSQL_USER: myuser
           MYSQL_PASSWORD: secret
         ports:
@@ -50,4 +50,4 @@ jobs:
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=thesis-LMS_librarySystemTests
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=thesis-LMS_qodo
