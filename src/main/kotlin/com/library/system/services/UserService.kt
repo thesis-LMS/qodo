@@ -2,8 +2,10 @@ package com.library.system.services
 
 import com.library.system.model.*
 import com.library.system.repository.UserRepository
+import org.springframework.stereotype.Service
 import java.util.UUID
 
+@Service
 class UserService(private val userRepository: UserRepository) {
 
     fun registerUser(user: User): User {
