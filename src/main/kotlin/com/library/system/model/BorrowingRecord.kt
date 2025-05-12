@@ -1,6 +1,21 @@
 package com.library.system.model
 
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Column
+import java.time.LocalDate
 import java.util.UUID
 
-data class BorrowingRecord (val id: UUID, val bookId: UUID, val userId: UUID) {
-}
+@Entity
+data class BorrowingRecord(
+    @Id
+    val id: UUID = UUID.randomUUID(),
+    val bookId: UUID,
+    val userId: UUID,
+    val borrowDate: LocalDate,
+    @Column(nullable = true)
+    val dueDate: LocalDate?,
+    @Column(nullable = true)
+    var returnDate: LocalDate?,
+    var lateFee: Double
+)
