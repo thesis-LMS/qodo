@@ -2,15 +2,12 @@ import com.tngtech.archunit.junit.AnalyzeClasses
 import com.tngtech.archunit.junit.ArchTest
 import com.tngtech.archunit.lang.ArchRule
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
-import com.tngtech.archunit.library.Architectures.layeredArchitecture
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
-import org.springframework.stereotype.Service
 
 @AnalyzeClasses(packages = ["com.library.system"])
 class ArchitectureTest {
-
-//    @ArchTest
+    //    @ArchTest
 //    val layer_dependencies_are_respected: ArchRule = layeredArchitecture()
 //        .consideringAllDependencies()
 //        .layer("Controller").definedBy("..web..")
@@ -29,11 +26,14 @@ class ArchitectureTest {
 //        .should().haveSimpleNameEndingWith("Service")
 
     @ArchTest
-    val repositories_must_be_interfaces_and_extend_JpaRepository: ArchRule = classes()
-        .that().resideInAPackage("..repository..")
-        .and().areAnnotatedWith(Repository::class.java)
-        .should().beInterfaces()
-        .andShould().beAssignableTo(JpaRepository::class.java)
-
-
+    val repositories_must_be_interfaces_and_extend_JpaRepository: ArchRule =
+        classes()
+            .that()
+            .resideInAPackage("..repository..")
+            .and()
+            .areAnnotatedWith(Repository::class.java)
+            .should()
+            .beInterfaces()
+            .andShould()
+            .beAssignableTo(JpaRepository::class.java)
 }
