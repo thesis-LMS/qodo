@@ -1,8 +1,8 @@
 package com.library.system.model
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
-import jakarta.persistence.Column
 import java.time.LocalDate
 import java.util.UUID
 
@@ -17,5 +17,5 @@ data class BorrowingRecord(
     val dueDate: LocalDate?,
     @Column(nullable = true)
     var returnDate: LocalDate?,
-    var lateFee: Double
+    var lateFee: Double,
 )

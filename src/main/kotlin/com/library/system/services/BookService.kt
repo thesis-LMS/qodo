@@ -13,7 +13,7 @@ import java.util.UUID
 class BookService(
     private val bookRepository: BookRepository,
     private val userRepository: UserRepository,
-    private val borrowingRecordRepository: BorrowingRecordRepository
+    private val borrowingRecordRepository: BorrowingRecordRepository,
 ) {
     companion object {
         const val BORROWING_LIMIT = 5L
@@ -26,27 +26,29 @@ class BookService(
         return bookRepository.save(book.copy(available = book.available))
     }
 
-    fun getBookById(bookId: UUID): Book {
-        return bookRepository.findById(bookId)
+    fun getBookById(bookId: UUID): Book =
+        bookRepository
+            .findById(bookId)
             .orElseThrow { ResourceNotFoundException("Book with ID $bookId not found") }
-    }
 
-    fun getAllBooks(): List<Book> {
-        return bookRepository.findAll()
-    }
+    fun getAllBooks(): List<Book> = bookRepository.findAll()
 
-    fun updateBook(bookId: UUID, updatedBookDetails: Book): Book {
+    fun updateBook(
+        bookId: UUID,
+        updatedBookDetails: Book,
+    ): Book {
         val existingBook = getBookById(bookId) // Throws ResourceNotFoundException if not found
 
         // Preserve borrowedByUserId and dueDate if the update is not about availability
         // or if the update is making it unavailable (which shouldn't clear borrow details).
         // The tests for updateBook don't seem to cover borrowed state, so this might be overly cautious
         // but generally safer. The primary test focus is title, author, available.
-        val bookToSave = existingBook.copy(
-            title = updatedBookDetails.title,
-            author = updatedBookDetails.author,
-            available = updatedBookDetails.available
-        )
+        val bookToSave =
+            existingBook.copy(
+                title = updatedBookDetails.title,
+                author = updatedBookDetails.author,
+                available = updatedBookDetails.available,
+            )
         return bookRepository.save(bookToSave)
     }
 
@@ -59,8 +61,12 @@ class BookService(
         bookRepository.deleteById(bookId)
     }
 
-    fun searchBooks(title: String?, author: String?, available: Boolean?): List<Book> {
-        return when {
+    fun searchBooks(
+        title: String?,
+        author: String?,
+        available: Boolean?,
+    ): List<Book> =
+        when {
             title != null && author != null && available != null ->
                 bookRepository.findByTitleContainingIgnoreCaseAndAuthorContainingIgnoreCaseAndAvailable(title, author, available)
             title != null && author != null ->
@@ -78,9 +84,11 @@ class BookService(
             else ->
                 bookRepository.findAll()
         }
-    }
 
-    fun borrowBook(bookId: UUID, userId: UUID): Book {
+    fun borrowBook(
+        bookId: UUID,
+        userId: UUID,
+    ): Book {
         val book = getBookById(bookId) // Throws ResourceNotFoundException if book not found - Test: POST borrowBook should return status 404 when book not found
 
         // To pass "borrowBook should throw BookNotAvailableException when book is not available"
@@ -89,8 +97,12 @@ class BookService(
             throw BookNotAvailableException("Book with ID $bookId is not available for borrowing.") // Test: POST borrowBook should return status 409 when book not available
         }
 
-        val user = userRepository.findById(userId)
-            .orElseThrow { ResourceNotFoundException("User with ID $userId not found for borrowing.") } // Test: POST borrowBook should return status 404 when user not found
+        val user =
+            userRepository
+                .findById(userId)
+                .orElseThrow {
+                    ResourceNotFoundException("User with ID $userId not found for borrowing.")
+                } // Test: POST borrowBook should return status 404 when user not found
 
         val currentBorrows = borrowingRecordRepository.countByUserIdAndReturnDateIsNull(userId)
         if (currentBorrows >= BORROWING_LIMIT) {
@@ -101,22 +113,24 @@ class BookService(
         val borrowDate = LocalDate.now()
         val dueDate = borrowDate.plusWeeks(DEFAULT_BORROW_WEEKS)
 
-        val updatedBook = book.copy(
-            available = false,
-            borrowedByUserId = userId,
-            dueDate = dueDate
-        )
+        val updatedBook =
+            book.copy(
+                available = false,
+                borrowedByUserId = userId,
+                dueDate = dueDate,
+            )
         // The test "borrowBook should create borrowing record and update book..." expects this save.
         val savedBook = bookRepository.save(updatedBook)
 
-        val borrowingRecord = BorrowingRecord(
-            bookId = bookId,
-            userId = userId,
-            borrowDate = borrowDate,
-            dueDate = dueDate,
-            returnDate = null,
-            lateFee = 0.0 // Initial late fee is 0
-        )
+        val borrowingRecord =
+            BorrowingRecord(
+                bookId = bookId,
+                userId = userId,
+                borrowDate = borrowDate,
+                dueDate = dueDate,
+                returnDate = null,
+                lateFee = 0.0, // Initial late fee is 0
+            )
         borrowingRecordRepository.save(borrowingRecord)
         return savedBook // Return the state of the book *after* saving
     }
@@ -126,8 +140,14 @@ class BookService(
 
         // The test `POST returnBook should return status 409 when book already available`
         // implies that if this record is not found, it's effectively "already returned" or was never borrowed.
-        val borrowingRecord = borrowingRecordRepository.findByBookIdAndReturnDateIsNull(bookId)
-            .orElseThrow { BookAlreadyReturnedException("Book with ID $bookId is already available or no active borrowing record found.") }
+        val borrowingRecord =
+            borrowingRecordRepository
+                .findByBookIdAndReturnDateIsNull(bookId)
+                .orElseThrow {
+                    BookAlreadyReturnedException(
+                        "Book with ID $bookId is already available or no active borrowing record found.",
+                    )
+                }
 
         val returnDate = LocalDate.now()
         var lateFee = 0.0
@@ -139,17 +159,19 @@ class BookService(
             }
         }
 
-        val updatedBorrowingRecord = borrowingRecord.copy(
-            returnDate = returnDate,
-            lateFee = lateFee
-        )
+        val updatedBorrowingRecord =
+            borrowingRecord.copy(
+                returnDate = returnDate,
+                lateFee = lateFee,
+            )
         borrowingRecordRepository.save(updatedBorrowingRecord)
 
-        val updatedBook = book.copy(
-            available = true,
-            borrowedByUserId = null,
-            dueDate = null
-        )
+        val updatedBook =
+            book.copy(
+                available = true,
+                borrowedByUserId = null,
+                dueDate = null,
+            )
         return bookRepository.save(updatedBook) // Return the state of the book *after* saving
     }
 }
