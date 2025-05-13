@@ -20,7 +20,6 @@ import java.util.UUID
 @ExtendWith(SpringExtension::class)
 @WebMvcTest(UserController::class)
 class UserControllerTest {
-
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -37,10 +36,12 @@ class UserControllerTest {
         val savedUser = newUserDto.copy(id = userId)
         whenever(userService.registerUser(any<User>())).thenReturn(savedUser)
 
-        mockMvc.perform(post("/api/users")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(newUserDto)))
-            .andExpect(status().isCreated)
+        mockMvc
+            .perform(
+                post("/api/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(newUserDto)),
+            ).andExpect(status().isCreated)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.id").value(savedUser.id.toString()))
             .andExpect(jsonPath("$.name").value(savedUser.name))
@@ -55,9 +56,11 @@ class UserControllerTest {
         val existingUser = User(id = userId, name = "Found User", email = "found@example.com")
         whenever(userService.getUserById(userId)).thenReturn(existingUser)
 
-        mockMvc.perform(get("/api/users/{id}", userId)
-            .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk)
+        mockMvc
+            .perform(
+                get("/api/users/{id}", userId)
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.id").value(existingUser.id.toString()))
             .andExpect(jsonPath("$.name").value(existingUser.name))
@@ -70,9 +73,11 @@ class UserControllerTest {
         val userId = UUID.randomUUID()
         whenever(userService.getUserById(userId)).thenThrow(ResourceNotFoundException("User with ID $userId not found"))
 
-        mockMvc.perform(get("/api/users/{id}", userId)
-            .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound)
+        mockMvc
+            .perform(
+                get("/api/users/{id}", userId)
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andExpect(status().isNotFound)
 
         verify(userService).getUserById(userId)
     }
@@ -84,10 +89,12 @@ class UserControllerTest {
         val updatedUser = updateDto.copy()
         whenever(userService.updateUser(eq(userId), any<User>())).thenReturn(updatedUser)
 
-        mockMvc.perform(put("/api/users/{id}", userId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(updateDto)))
-            .andExpect(status().isOk)
+        mockMvc
+            .perform(
+                put("/api/users/{id}", userId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(updateDto)),
+            ).andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.id").value(userId.toString()))
             .andExpect(jsonPath("$.name").value(updateDto.name))
@@ -102,10 +109,12 @@ class UserControllerTest {
         whenever(userService.updateUser(eq(userId), any<User>()))
             .thenThrow(ResourceNotFoundException("User with ID $userId not found for update"))
 
-        mockMvc.perform(put("/api/users/{id}", userId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(updateDto)))
-            .andExpect(status().isNotFound)
+        mockMvc
+            .perform(
+                put("/api/users/{id}", userId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(updateDto)),
+            ).andExpect(status().isNotFound)
 
         verify(userService).updateUser(eq(userId), any<User>())
     }

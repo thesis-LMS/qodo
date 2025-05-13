@@ -9,13 +9,12 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.kotlin.*
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.*
 import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 class UserServiceTest {
-
     @Mock
     lateinit var userRepository: UserRepository
 
@@ -57,9 +56,10 @@ class UserServiceTest {
         val userId = UUID.randomUUID()
         whenever(userRepository.findById(userId)).thenReturn(Optional.empty())
 
-        val exception = assertThrows<ResourceNotFoundException> {
-            userService.getUserById(userId)
-        }
+        val exception =
+            assertThrows<ResourceNotFoundException> {
+                userService.getUserById(userId)
+            }
         assertEquals("User with ID $userId not found", exception.message)
         verify(userRepository).findById(userId)
     }
@@ -90,9 +90,10 @@ class UserServiceTest {
         val userDetailsToUpdate = User(id = userId, name = "Doesn't Matter", email = "test@test.com")
         whenever(userRepository.findById(userId)).thenReturn(Optional.empty())
 
-        val exception = assertThrows<ResourceNotFoundException> {
-            userService.updateUser(userId, userDetailsToUpdate)
-        }
+        val exception =
+            assertThrows<ResourceNotFoundException> {
+                userService.updateUser(userId, userDetailsToUpdate)
+            }
         assertEquals("User with ID $userId not found", exception.message)
         verify(userRepository).findById(userId)
         verify(userRepository, never()).save(any<User>())
